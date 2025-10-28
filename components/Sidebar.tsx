@@ -27,7 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex items-center justify-between gap-2 mb-6">
           <div className="flex items-center gap-2">
             <Icons.logo className="h-8 w-8 text-blue-600" />
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Course Gen</h1>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">CourseSync</h1>
           </div>
           <button onClick={onClose} className="md:hidden p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
               <Icons.close className="w-6 h-6" />

@@ -1,5 +1,5 @@
 {
-  "name": "AI Course Outline Generator",
-  "description": "A powerful productivity tool for curriculum designers and trainers to generate, edit, and manage comprehensive course outlines using AI. Features include editable fields, AI-assisted refinement, text-to-speech narration, and multiple export options.",
+  "name": "CourseSync",
+  "description": "CourseSync is a powerful productivity tool for curriculum designers and trainers to generate, edit, and manage comprehensive course outlines using AI. Features include editable fields, AI-assisted refinement, text-to-speech narration, and multiple export options.",
   "requestFramePermissions": []
 }

@@ -282,7 +282,7 @@ const App: React.FC = () => {
               <div className="flex flex-col items-center justify-center h-full">
                 <div className="text-center max-w-4xl mx-auto">
                   <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500">
-                    AI Course & Instructor Finder
+                    CourseSync
                   </h1>
                   <p className="mt-4 text-xl text-slate-600 dark:text-slate-400">
                     Instantly craft detailed, localized training plans and find real instructors with Gemini.
