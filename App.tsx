@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback, memo, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import CourseOutline from './components/CourseOutline';
@@ -48,6 +48,8 @@ const App: React.FC = () => {
     clearHistory
   } = useHistory<Project | null>(null);
 
+  const isInitialLoad = useRef(true);
+
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
@@ -56,14 +58,18 @@ const App: React.FC = () => {
     if (activeProjectId) {
       const projectToLoad = projects.find(p => p.id === activeProjectId) || null;
       if (currentProject?.id !== projectToLoad?.id) {
-         setCurrentProject(projectToLoad, true);
+        setCurrentProject(projectToLoad, true);
       }
-    } else if (projects.length > 0) {
+    } else if (isInitialLoad.current && projects.length > 0) {
+      // On initial load, if no project is active, select the first one.
       setActiveProjectId(projects[0].id);
-    } else {
-        setCurrentProject(null, true);
+    } else if (currentProject !== null) {
+      // If no project is active (and it's not initial load), clear the view.
+      setCurrentProject(null, true);
     }
-  }, [activeProjectId, projects, setCurrentProject]);
+    // After the first effect run, it's no longer the initial load.
+    isInitialLoad.current = false;
+  }, [activeProjectId, projects, currentProject, setCurrentProject, setActiveProjectId]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
