@@ -23,6 +23,18 @@ export interface CourseGenerationParams {
   style: string;
 }
 
+const ErrorNotification: React.FC<{ message: string | null, onClose: () => void }> = ({ message, onClose }) => {
+  if (!message) return null;
+
+  return (
+    <div className="fixed top-5 right-5 bg-red-600 text-white py-3 px-5 rounded-lg shadow-xl z-[100] flex items-center gap-4 animate-pulse">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <span className="font-medium">{message}</span>
+      <button onClick={onClose} className="text-red-100 hover:text-white font-bold text-2xl leading-none">&times;</button>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const [projects, setProjects] = useLocalStorage<Project[]>('ai-course-projects', []);
   const [activeProjectId, setActiveProjectId] = useLocalStorage<string | null>('ai-course-active-project', null);
@@ -53,6 +65,15 @@ const App: React.FC = () => {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
+
+   useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000); // Clear error after 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   useEffect(() => {
     if (activeProjectId) {
@@ -194,6 +215,7 @@ const App: React.FC = () => {
   const handleRefine = async (path: (string | number)[], content: string, type: 'concise' | 'professional' | 'simple') => {
     setLoadingMessage(`Refining text to be more ${type}...`);
     setIsLoading(true);
+    setError(null);
     try {
         const refinedContent = await refineText(content, type);
         handleUpdateNestedField(path, refinedContent);
@@ -225,6 +247,7 @@ const App: React.FC = () => {
       const contentTypeFormatted = contentType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
       setLoadingMessage(`Generating ${contentTypeFormatted}...`);
       setIsLoading(true);
+      setError(null);
       try {
           const content = await generateLessonContent(currentProject.course.title, lesson.title, lesson.description, contentType);
           handleUpdateNestedField([...path, contentType], content);
@@ -242,12 +265,14 @@ const App: React.FC = () => {
     setIsOutreachModalOpen(true);
     setIsGeneratingOutreach(true);
     setOutreachDraft(''); // Clear previous draft
+    setError(null);
     try {
         const draft = await generateOutreachDraft(currentProject.course.title, recipient, type);
         setOutreachDraft(draft);
     } catch (err) {
         console.error(err);
         setOutreachDraft('Failed to generate outreach draft. Please try again.');
+        setError(err instanceof Error ? err.message : 'An unknown error occurred.');
     } finally {
         setIsGeneratingOutreach(false);
     }
@@ -255,6 +280,7 @@ const App: React.FC = () => {
   
   return (
     <div className={`font-sans text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-950 min-h-screen`}>
+      <ErrorNotification message={error} onClose={() => setError(null)} />
       <Sidebar
         projects={projects}
         activeProjectId={activeProjectId}
@@ -290,7 +316,6 @@ const App: React.FC = () => {
                 </div>
                 <div className="w-full max-w-4xl mt-10">
                     <GeneratorForm onGenerate={handleGenerate} isLoading={isLoading} />
-                    {error && <p className="mt-4 text-center text-red-500">{error}</p>}
                 </div>
               </div>
             )}

@@ -12,6 +12,33 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
+// --- Client-Side Rate Limiter ---
+const RATE_LIMIT_COUNT = 15; // Max requests
+const RATE_LIMIT_INTERVAL = 60 * 1000; // per 1 minute
+
+const requestTimestamps: number[] = [];
+
+const rateLimiter = {
+  check: (): boolean => {
+    const now = Date.now();
+    
+    // Remove timestamps older than the interval
+    while (requestTimestamps.length > 0 && requestTimestamps[0] < now - RATE_LIMIT_INTERVAL) {
+      requestTimestamps.shift();
+    }
+
+    if (requestTimestamps.length >= RATE_LIMIT_COUNT) {
+      console.warn("Client-side rate limit exceeded.");
+      return false; // Limit exceeded
+    }
+
+    requestTimestamps.push(now);
+    return true; // Request allowed
+  },
+};
+// --- End Rate Limiter ---
+
+
 const getCourseJsonStructure = () => ({
     title: "string",
     description: "string (detailed, 2-3 paragraphs)",
@@ -74,6 +101,9 @@ const parseJsonResponse = (text: string): Course => {
 }
 
 export const generateCourseOutline = async (params: CourseGenerationParams, onProgress: (message: string) => void): Promise<Course> => {
+  if (!rateLimiter.check()) {
+    throw new Error("You're making requests too quickly. Please wait a moment and try again.");
+  }
   const model = 'gemini-2.5-pro';
   
   onProgress('Crafting the perfect prompt...');
@@ -135,6 +165,9 @@ export const generateCourseOutline = async (params: CourseGenerationParams, onPr
 };
 
 export const refineText = async (text: string, type: 'concise' | 'professional' | 'simple'): Promise<string> => {
+    if (!rateLimiter.check()) {
+        throw new Error("You're making requests too quickly. Please wait a moment and try again.");
+    }
     const model = 'gemini-2.5-flash';
     let instruction = '';
     switch(type) {
@@ -154,6 +187,9 @@ export const refineText = async (text: string, type: 'concise' | 'professional' 
 };
 
 export const generateSpeech = async (text: string): Promise<string> => {
+    if (!rateLimiter.check()) {
+        throw new Error("You're making requests too quickly. Please wait a moment and try again.");
+    }
     const model = 'gemini-2.5-flash-preview-tts';
     const response = await ai.models.generateContent({
         model: model,
@@ -181,6 +217,9 @@ export const generateLessonContent = async (
     lessonDescription: string,
     contentType: 'lectureNotes' | 'keyTalkingPoints' | 'quizQuestions'
   ): Promise<string> => {
+      if (!rateLimiter.check()) {
+        throw new Error("You're making requests too quickly. Please wait a moment and try again.");
+      }
       const model = 'gemini-2.5-flash';
       let instruction = '';
       let format_instructions = '';
@@ -226,6 +265,9 @@ export const generateOutreachDraft = async (
     recipient: Person | Company,
     type: 'instructor' | 'lead'
 ): Promise<string> => {
+    if (!rateLimiter.check()) {
+        throw new Error("You're making requests too quickly. Please wait a moment and try again.");
+    }
     const model = 'gemini-2.5-flash';
     let recipientInfo = '';
     let instruction = '';
